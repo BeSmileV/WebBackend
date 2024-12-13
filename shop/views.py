@@ -89,3 +89,22 @@ class CartView(viewsets.ModelViewSet):
 
         cart.products.clear()
         return Response({'message': 'Purchase successful! Your cart is now empty.'})
+
+    @action(detail=False, methods=['post'])
+    def in_cart(self, request):
+        product_id = request.data.get('product_id')
+
+        if not product_id:
+            return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({"success": False})
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        if product not in cart.products.all():
+            return Response({"success": False})
+
+        return Response({"success": True})
